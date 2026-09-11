@@ -1,0 +1,49 @@
+---
+- name: Install the automated post-install audit runner
+  ansible.builtin.copy:
+    dest: /usr/local/bin/kali-post-install-audit.sh
+    owner: root
+    group: root
+    mode: '0750'
+    content: |
+      #!/bin/bash
+      set -euo pipefail
+
+      log_dir="/var/log/kali-audit"
+      timestamp="$(date +%F-%H%M%S)"
+      ubuntu_web_host="{{ hostvars[groups['ubuntu_servers'][0]].ansible_host | default('192.168.122.194') }}"
+      report_file="$log_dir/post-install-$timestamp.log"
+
+      mkdir -p "$log_dir"
+
+      {
+        echo "=== Kali post-install audit started at $(date -Is) ==="
+        echo "Target host: $ubuntu_web_host"
+        echo
+        echo "=== Lynis local system audit ==="
+        lynis audit system --quiet || true
+        echo
+        echo "=== Nmap service and OS discovery against the Ubuntu web server ==="
+        nmap -sS -sV -O -Pn "$ubuntu_web_host" || true
+        echo
+        echo "=== Nikto HTTP scan against the Ubuntu web server ==="
+        nikto -h "http://$ubuntu_web_host" || true
+        echo
+        echo "=== Audit completed at $(date -Is) ==="
+      } > "$report_file" 2>&1
+
+- name: Schedule the audit runner through cron daily
+  ansible.builtin.copy:
+    dest: /etc/cron.daily/kali-post-install-audit
+    owner: root
+    group: root
+    mode: '0755'
+    content: |
+      #!/bin/sh
+      exec /usr/local/bin/kali-post-install-audit.sh
+
+- name: Ensure the cron service is enabled and running
+  ansible.builtin.systemd:
+    name: cron
+    enabled: true
+    state: started

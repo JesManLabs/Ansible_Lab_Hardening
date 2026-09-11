@@ -1,0 +1,15 @@
+---
+- name: Manage the Ubuntu web server lifecycle
+  hosts: ubuntu_servers
+  become: true
+  gather_facts: false
+
+  vars:
+    nginx_state: started
+
+  tasks:
+    - name: Apply the requested Nginx state
+      ansible.builtin.systemd:
+        name: nginx
+        state: "{{ nginx_state }}"
+        enabled: "{{ nginx_state == 'started' }}"

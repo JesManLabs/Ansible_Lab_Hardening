@@ -1,0 +1,17 @@
+---
+- ansible.builtin.import_tasks: hardening.yml
+  tags:
+    - hardening
+
+- ansible.builtin.import_tasks: webserver.yml
+  tags:
+    - webserver
+
+- ansible.builtin.import_tasks: logging.yml
+  tags:
+    - logging
+
+- ansible.builtin.import_tasks: automation.yml
+  tags:
+    - automation
+

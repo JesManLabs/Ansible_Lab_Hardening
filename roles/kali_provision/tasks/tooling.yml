@@ -1,0 +1,17 @@
+---
+- name: Refresh package indexes and fully upgrade Kali
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+    upgrade: dist
+    autoremove: true
+    autoclean: true
+
+- name: Install the Kali security auditing toolchain
+  ansible.builtin.apt:
+    name:
+      - nmap
+      - lynis
+      - nikto
+      - cron
+    state: present

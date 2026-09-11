@@ -1,0 +1,28 @@
+# Ansible runtime artifacts
+*.retry
+*.log
+*.out
+*.pid
+
+# Temporary and editor files
+*.swp
+*.swo
+*~
+.DS_Store
+.vscode/
+
+# Secrets and vault material
+*.vault
+*.vault.yml
+*.vault.yaml
+*.secret
+vault.yml
+group_vars/*/vault.yml
+group_vars/*/vault.yaml
+host_vars/*/vault.yml
+host_vars/*/vault.yaml
+
+# Local Python or tooling caches
+.ansible/
+.pytest_cache/
+__pycache__/

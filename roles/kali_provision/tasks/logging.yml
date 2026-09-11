@@ -1,0 +1,8 @@
+---
+- name: Create the local audit log directory
+  ansible.builtin.file:
+    path: /var/log/kali-audit
+    state: directory
+    owner: root
+    group: root
+    mode: '0750'

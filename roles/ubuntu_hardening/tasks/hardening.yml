@@ -1,0 +1,78 @@
+---
+- name: Refresh package indexes and fully upgrade Ubuntu
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+    upgrade: dist
+    autoremove: true
+    autoclean: true
+
+- name: Install Ubuntu hardening packages
+  ansible.builtin.apt:
+    name:
+      - ufw
+      - fail2ban
+      - openssh-server
+      - unattended-upgrades
+    state: present
+
+- name: Install the SSH hardening drop-in
+  ansible.builtin.copy:
+    dest: /etc/ssh/sshd_config.d/99-local-range-hardening.conf
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      # Local lab hardening for the Ubuntu production web server.
+      PermitRootLogin no
+      PasswordAuthentication no
+      PubkeyAuthentication yes
+      KbdInteractiveAuthentication no
+      ChallengeResponseAuthentication no
+      X11Forwarding no
+      MaxAuthTries 3
+      ClientAliveInterval 300
+      ClientAliveCountMax 2
+      AllowTcpForwarding no
+      AllowAgentForwarding no
+      PermitEmptyPasswords no
+  register: ssh_hardening_dropin
+  notify: restart ssh
+
+- name: Validate SSH configuration before the handler runs
+  ansible.builtin.command: /usr/sbin/sshd -t
+  changed_when: false
+
+- name: Install the Fail2ban SSH jail
+  ansible.builtin.copy:
+    dest: /etc/fail2ban/jail.d/sshd.local
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      # Dedicated SSH jail for the Ubuntu web server.
+      [sshd]
+      enabled = true
+      backend = systemd
+      maxretry = 5
+      findtime = 10m
+      bantime = 1h
+      ignoreip = 127.0.0.1/8
+  register: fail2ban_jail
+  notify: restart fail2ban
+
+- name: Enforce UFW default policies for a locked-down perimeter
+  ansible.builtin.ufw:
+    state: enabled
+    policy: "{{ item.policy }}"
+    direction: "{{ item.direction }}"
+  loop:
+    - { policy: 'deny', direction: 'incoming' }
+    - { policy: 'allow', direction: 'outgoing' }
+    - { policy: 'deny', direction: 'routed' }
+
+- name: Allow SSH through UFW
+  ansible.builtin.ufw:
+    rule: allow
+    port: '22'
+    proto: tcp

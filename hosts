@@ -1,0 +1,12 @@
+[ubuntu_servers]
+ubuntu-web-01 ansible_host=192.168.122.194 ansible_user=debasis ansible_connection=ssh
+
+[kali_nodes]
+kali-auditor-01 ansible_host=192.168.122.133 ansible_user=kali ansible_connection=ssh
+
+[lab:children]
+ubuntu_servers
+kali_nodes
+
+[lab:vars]
+ansible_python_interpreter=/usr/bin/python3

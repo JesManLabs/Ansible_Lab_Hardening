@@ -1,0 +1,32 @@
+---
+- name: Install logging and log rotation packages
+  ansible.builtin.apt:
+    name:
+      - rsyslog
+      - logrotate
+    state: present
+
+- name: Create an application audit log directory
+  ansible.builtin.file:
+    path: /var/log/automation
+    state: directory
+    owner: root
+    group: adm
+    mode: '0750'
+
+- name: Create a logrotate policy for the range landing page and automation logs
+  ansible.builtin.copy:
+    dest: /etc/logrotate.d/local-range-automation
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      /var/log/automation/*.log /var/log/nginx/*.log {
+          weekly
+          rotate 8
+          missingok
+          notifempty
+          compress
+          delaycompress
+          create 0640 root adm
+      }

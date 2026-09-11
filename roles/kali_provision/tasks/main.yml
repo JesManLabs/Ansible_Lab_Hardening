@@ -1,0 +1,13 @@
+---
+- ansible.builtin.import_tasks: tooling.yml
+  tags:
+    - tooling
+
+- ansible.builtin.import_tasks: audit.yml
+  tags:
+    - audit
+
+- ansible.builtin.import_tasks: logging.yml
+  tags:
+    - logging
+

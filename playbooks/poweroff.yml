@@ -1,0 +1,12 @@
+---
+- name: Power off the entire lab
+  hosts: lab
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Shut down the target host cleanly
+      ansible.builtin.command: /usr/sbin/shutdown -h now
+      async: 1
+      poll: 0
+      changed_when: true

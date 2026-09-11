@@ -1,0 +1,34 @@
+---
+- name: Harden the Ubuntu production web server
+  hosts: ubuntu_servers
+  become: true
+  gather_facts: true
+
+  pre_tasks:
+    - name: Confirm the Ubuntu host is on the local KVM subnet
+      ansible.builtin.assert:
+        that:
+          - ansible_host is match('^192\.168\.122\.[0-9]+$')
+        fail_msg: >-
+          The Ubuntu target must stay inside the local libvirt subnet
+          192.168.122.0/24 for this lab range.
+
+  roles:
+    - ubuntu_hardening
+
+- name: Provision the Kali auditing node
+  hosts: kali_nodes
+  become: true
+  gather_facts: true
+
+  pre_tasks:
+    - name: Confirm the Kali host is on the local KVM subnet
+      ansible.builtin.assert:
+        that:
+          - ansible_host is match('^192\.168\.122\.[0-9]+$')
+        fail_msg: >-
+          The Kali target must stay inside the local libvirt subnet
+          192.168.122.0/24 for this lab range.
+
+  roles:
+    - kali_provision

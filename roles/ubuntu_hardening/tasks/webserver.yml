@@ -1,0 +1,42 @@
+---
+- name: Install Nginx for the production web server
+  ansible.builtin.apt:
+    name:
+      - nginx
+    state: present
+
+- name: Deploy a clear local-range landing page
+  ansible.builtin.copy:
+    dest: /var/www/html/index.nginx-debian.html
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      <!doctype html>
+      <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Automated Linux Hardening Range</title>
+      </head>
+      <body>
+        <h1>Ubuntu Production Web Server</h1>
+        <p>This host is hardened and managed locally through Ansible.</p>
+      </body>
+      </html>
+  notify: restart nginx
+
+- name: Ensure the web server is enabled and running
+  ansible.builtin.systemd:
+    name: nginx
+    enabled: true
+    state: started
+
+- name: Open HTTP and HTTPS through UFW
+  ansible.builtin.ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop:
+    - '80'
+    - '443'
